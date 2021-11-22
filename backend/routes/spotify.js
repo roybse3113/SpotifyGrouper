@@ -112,8 +112,13 @@ router.get('/playlists', async (req, res) => {
 router.get('/followedArtists', async (req, res) => {
   try {
     const artists = await spotifyApi.getFollowedArtists()
+    const list = []
     if (artists) {
-      res.send(artists)
+      artists.body.artists.items.forEach(ele => {
+        list.push(ele.name)
+      })
+      req.session.followedArtists = list
+      res.send(req.session.followedArtists)
       console.log(artists)
     }
   } catch (err) {
