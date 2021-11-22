@@ -1,8 +1,12 @@
+const SpotifyWebApi = require('spotify-web-api-node')
+
 const express = require('express')
 const mongoose = require('mongoose')
 const session = require('cookie-session')
+const User = require('./models/user')
 
 const AccountRouter = require('./routes/account')
+const SpotifyRouter = require('./routes/spotify')
 
 const app = express()
 
@@ -12,10 +16,6 @@ const MONGO_URI =
 mongoose.connect(MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
-})
-
-app.get('/', (req, res) => {
-  return res.send('ello world!')
 })
 
 app.use(express.json())
@@ -28,6 +28,7 @@ app.use(
   })
 )
 
+app.use('/spotify', SpotifyRouter)
 app.use('/account', AccountRouter)
 
 // error handling middleware at bottom of stack
@@ -40,7 +41,8 @@ app.use((err, req, res, next) => {
   })
 })
 
-// Start listening for requests
-app.listen(3000, () => {
-  console.log('Listening on port 3000')
+app.get('/', (req, res) => {
+  return res.send('ellop world!')
 })
+
+app.listen(3000, () => console.log('HTTP Server up'))

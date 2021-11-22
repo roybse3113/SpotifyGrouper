@@ -18,12 +18,16 @@
   },
   "homepage": "https://github.com/roybse3113/SpotifyGrouper#readme",
   "dependencies": {
+    "axios": "^0.24.0",
     "babel-eslint": "^10.1.0",
     "cookie-session": "^1.4.0",
     "eslint": "^6.8.0",
     "eslint-config-airbnb": "^18.2.0",
     "express": "^4.17.1",
-    "mongoose": "^6.0.13"
+    "mongoose": "^6.0.13",
+    "spotify-web-api-js": "^1.5.2",
+    "spotify-web-api-node": "^5.0.2",
+    "superagent": "^6.1.0"
   },
   "devDependencies": {
     "eslint-plugin-import": "^2.21.2",
