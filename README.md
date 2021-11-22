@@ -7,4 +7,5 @@ I mainly focused on setting the project up, primarily working on the back-end. S
 * Set up the routes for requests (account, spotify)
 * Set up the models (user and group schema)
 * Worked on understanding the Spotify API and getting it connected to the spotify router for requests
+* * hello
 * Structured the express server (server.js) in terms of middlewares, routers, cookie-session, and database (MongoDB)
