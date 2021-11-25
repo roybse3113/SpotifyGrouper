@@ -1,8 +1,8 @@
 const { Schema, model } = require('mongoose')
+const User = require('./user').schema
 
 const groupSchema = new Schema({
-  groupname: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
+  members: [{ type: User }],
 })
 
 module.exports = model('Group', groupSchema)

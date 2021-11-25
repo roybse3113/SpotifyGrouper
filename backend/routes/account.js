@@ -47,6 +47,8 @@ router.post('/login', async (req, res, next) => {
           req.session.username = username
           req.session.password = password
           req.session.user = user
+          req.session.id = user._id
+          console.log('id: ', req.session.id.toString())
           res.send('user logged in successfully')
         } else {
           res.send('user credentials are wrong')

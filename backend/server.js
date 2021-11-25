@@ -7,6 +7,7 @@ const User = require('./models/user')
 
 const AccountRouter = require('./routes/account')
 const SpotifyRouter = require('./routes/spotify')
+const GroupRouter = require('./routes/group')
 
 const app = express()
 
@@ -30,6 +31,7 @@ app.use(
 
 app.use('/spotify', SpotifyRouter)
 app.use('/account', AccountRouter)
+app.use('/group', GroupRouter)
 
 // error handling middleware at bottom of stack
 app.use((err, req, res, next) => {

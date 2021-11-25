@@ -109,6 +109,42 @@ router.get('/playlists', async (req, res) => {
   }
 })
 
+router.get('/topArtists', async (req, res) => {
+  try {
+    const artists = await spotifyApi.getMyTopArtists()
+    const list = []
+    if (artists) {
+      artists.body.items.forEach(ele => {
+        list.push(ele.name)
+      })
+      req.session.topArtists = list
+      res.send(list)
+      const { id, topArtists } = req.session
+      await User.updateOne({ _id: id }, { topArtists })
+    }
+  } catch (err) {
+    console.log('error')
+  }
+})
+
+router.get('/topTracks', async (req, res) => {
+  try {
+    const tracks = await spotifyApi.getMyTopTracks()
+    const list = []
+    if (tracks) {
+      tracks.body.items.forEach(ele => {
+        list.push(ele.name)
+      })
+      req.session.topTracks = list
+      res.send(list)
+      const { id, topTracks } = req.session
+      await User.updateOne({ _id: id }, { topTracks })
+    }
+  } catch (err) {
+    console.log('error')
+  }
+})
+
 router.get('/followedArtists', async (req, res) => {
   try {
     const artists = await spotifyApi.getFollowedArtists()
@@ -119,7 +155,8 @@ router.get('/followedArtists', async (req, res) => {
       })
       req.session.followedArtists = list
       res.send(req.session.followedArtists)
-      console.log(artists)
+      const { id, followedArtists } = req.session
+      await User.updateOne({ _id: id }, { followedArtists })
     }
   } catch (err) {
     console.log('error')
