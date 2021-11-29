@@ -5,6 +5,7 @@ const router = express.Router()
 
 const Group = require('../models/group')
 const User = require('../models/user')
+const Song = require('../models/song')
 
 const isAuthenticated = require('../middlewares/isAuthenticated')
 
@@ -180,7 +181,8 @@ router.get('/devices', async (req, res, next) => {
 
 // given group ID, popular playlist
 router.post('/makePopularPlaylist', async (req, res, next) => {
-  const groupID = '61a026d7ea91ed50bf706ad4'
+  const { groupID } = req.body
+  // const groupID = '61a026d7ea91ed50bf706ad4'
   const list = []
   try {
     const playlist = await spotifyApi.createPlaylist('Popular Songs Playlist')
@@ -207,7 +209,8 @@ router.post('/makePopularPlaylist', async (req, res, next) => {
 
 // given group ID, top tracks playlist
 router.post('/makeMostPlayedPlaylist', async (req, res, next) => {
-  const groupID = '61a026d7ea91ed50bf706ad4'
+  const { groupID } = req.body
+  // const groupID = '61a026d7ea91ed50bf706ad4'
   const list = []
   try {
     const playlist = await spotifyApi.createPlaylist('Top Tracks Playlist')
@@ -239,8 +242,56 @@ router.post('/makeMostPlayedPlaylist', async (req, res, next) => {
   }
 })
 
-// given group ID, community makes playlist
-router.post('/makeCommunityPlaylist', async (req, res, next) => {
+// given group ID, recommend to the community playlist
+router.post('/recommendSong', async (req, res, next) => {
+  const userId = req.session.id
+  const { track, artist, groupID } = req.body
+  // const groupID = '61a026d7ea91ed50bf706ad4'
+  try {
+    // check if user is in group
+    const user = await User.findById({ _id: userId })
+    console.log(user)
+    let inGroup = false
+    user.groups.forEach(g => {
+      console.log(g, groupID)
+      if (g === groupID) inGroup = true
+    })
+
+    if (inGroup) {
+      const songs = await spotifyApi.searchTracks(
+        `track: ${track} artist: ${artist}`
+      )
+      if (songs.body.tracks.items.length !== 0) {
+        const song = songs.body.tracks.items[0]
+        const newSong = await Song.create({
+          id: song.id,
+          name: song.name,
+        })
+        const group = await Group.findById({ _id: groupID })
+        let duplicate = false
+        group.recommendedSongs.forEach(curr => {
+          if (curr.id === song.id) duplicate = true
+        })
+        if (!duplicate) {
+          const recommendedSongs = [...group.recommendedSongs, newSong]
+          await Group.updateOne({ _id: groupID }, { recommendedSongs })
+          res.send('recommended to group')
+        } else {
+          res.send('song is already recommended')
+        }
+      } else {
+        res.send('no such song')
+      }
+    } else {
+      res.send('not in group')
+    }
+  } catch (err) {
+    next(err)
+  }
+})
+
+// add the community playlist as a playlist
+router.post('/useCommunityPlaylist', async (req, res, next) => {
   const groupID = '61a026d7ea91ed50bf706ad4'
   const list = []
 })

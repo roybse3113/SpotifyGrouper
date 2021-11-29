@@ -7,7 +7,7 @@ const userSchema = new Schema({
   followedArtists: [{ type: String }],
   topTracks: [{ type: String }],
   topArtists: [{ type: String }],
-  group: { type: String },
+  groups: [{ type: String }],
 })
 
 module.exports = model('User', userSchema)
