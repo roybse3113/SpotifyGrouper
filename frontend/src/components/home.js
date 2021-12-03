@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import { Link, useNavigate } from 'react-router-dom'
 import { set } from 'mongoose'
+import GroupPage from './group'
 
 const home = () => {
   const [user, setUser] = useState({
@@ -15,11 +16,22 @@ const home = () => {
     __v: '',
   })
   const [data, setData] = useState([])
+  const [currGroup, setCurrGroup] = useState({
+    _id: '',
+    members: '',
+    artists: '',
+    mostPlayed: '',
+    communityPlaylist: '',
+    recommendedSongs: '',
+    __v: '',
+    mapTracks: '',
+  })
   const [members, setMembers] = useState([])
   const [artists, setArtists] = useState([])
   const [mostPlayed, setMostPlayed] = useState([])
   const [commPlaylist, setCommPlaylist] = useState([])
   const [recSongs, setRecSongs] = useState([])
+  const [showGroup, setShowGroup] = useState(false)
   const logOut = async () => {
     const { data: response } = await axios.post('/account/logout')
     if (response === 'user has logged out') {
@@ -61,42 +73,29 @@ const home = () => {
   // }
 
   const displayGroup = group => {
-    let contains = false
-    group.members.forEach(member => {
-      if (member._id === user._id) contains = true
+    setCurrGroup(group)
+    setShowGroup(true)
+  }
+
+  const selectedGroup = () => {
+    let curr = {}
+    data.forEach(g => {
+      if (g._id === currGroup._id) curr = g
     })
-    if (contains) {
-      return (
-        <div>
-          <h4>Members</h4>
-          {group.members.map(member => (
-            <p>{member.username}</p>
-          ))}
-          <h4>Artists</h4>
-          {group.artists.map(artist => (
-            <p>{artist}</p>
-          ))}
-          <h4>Most Played Songs</h4>
-          {group.mostPlayed.map(song => (
-            <p>{song}</p>
-          ))}
-          <h4>Recommended Songs</h4>
-          {group.recommendedSongs.map(song => (
-            <p>{song.name}</p>
-          ))}
-          <h4>Community Playlist</h4>
-          {group.communityPlaylist.map(song => (
-            <p>{song.name}</p>
-          ))}
-        </div>
-      )
-    }
-    return ''
+    return (
+      <GroupPage
+        currGroup={curr}
+        user={user}
+        showGroup={showGroup}
+        setShowGroup={setShowGroup}
+      />
+    )
   }
 
   useEffect(() => {
     const intervalID = setInterval(async () => {
       // update user information as necessary
+      // await axios.get('/spotify/refresh')
       await axios.get('/spotify/playlists')
       await axios.get('/spotify/topArtists')
       await axios.get('/spotify/topTracks')
@@ -107,13 +106,22 @@ const home = () => {
       // displayGroups(groups)
       // console.log(members)
       setData(groups)
-    }, 5000)
+    }, 2000)
     return () => clearInterval(intervalID)
   }, [members])
 
   return (
     <div>
-      {data.map(group => displayGroup(group))}
+      {data.map(group => (
+        <button
+          type='button'
+          key={group._id}
+          onClick={() => displayGroup(group)}
+        >
+          {group._id}
+        </button>
+      ))}
+      {showGroup ? selectedGroup() : ''}
       <h1>Title</h1>
       <button className='submit' type='button' onClick={logOut}>
         Log Out

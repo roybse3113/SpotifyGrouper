@@ -61,19 +61,9 @@ router.get('/callback', async (req, res) => {
       spotifyApi.setAccessToken(access_token)
       spotifyApi.setRefreshToken(refresh_token)
 
-      console.log('access_token:', access_token)
-      console.log('refresh_token:', refresh_token)
-
-      console.log(
-        `Sucessfully retreived access token. Expires in ${expires_in} s.`
-      )
-
       setInterval(async () => {
         const refresh_data = await spotifyApi.refreshAccessToken()
         const { refresh_access_token } = refresh_data.body
-
-        console.log('The access token has been refreshed!')
-        console.log('access_token:', refresh_access_token)
 
         spotifyApi.setAccessToken(refresh_access_token)
       }, (expires_in / 2) * 1000)
@@ -81,9 +71,15 @@ router.get('/callback', async (req, res) => {
       res.redirect('/')
     })
     .catch(err => {
-      console.error('Error getting Tokens:', err)
       res.send(`Error getting Tokens: ${err}`)
     })
+})
+
+router.get('/refresh', async (req, res) => {
+  const refresh_data = await spotifyApi.refreshAccessToken()
+  const { refresh_access_token } = refresh_data.body
+
+  spotifyApi.setAccessToken(refresh_access_token)
 })
 
 router.get('/about', async (req, res, next) => {
@@ -242,10 +238,40 @@ router.post('/makeMostPlayedPlaylist', async (req, res, next) => {
   }
 })
 
+router.post('/search', async (req, res, next) => {
+  const { track, artist } = req.body
+  try {
+    // check if user is in group
+    const songs = await spotifyApi.searchTracks(
+      `track: ${track} artist: ${artist}`
+    )
+    const list = []
+    if (songs.body.tracks.items.length !== 0) {
+      songs.body.tracks.items.forEach(async song => {
+        const songArtists = []
+        song.artists.forEach(a => songArtists.push(a.name))
+        const curr = await Song.create({
+          id: song.id,
+          name: song.name,
+          artists: songArtists,
+        })
+        list.push(curr)
+        if (list.length === songs.body.tracks.items.length) {
+          res.send(list)
+        }
+      })
+    } else {
+      res.send('no results found')
+    }
+  } catch (err) {
+    next(err)
+  }
+})
+
 // given group ID, recommend to the community playlist
 router.post('/recommendSong', async (req, res, next) => {
   const userId = req.session.id
-  const { track, artist, groupID } = req.body
+  const { songName, songID, groupID } = req.body
   // const groupID = '61a026d7ea91ed50bf706ad4'
   try {
     // check if user is in group
@@ -258,31 +284,25 @@ router.post('/recommendSong', async (req, res, next) => {
     })
 
     if (inGroup) {
-      const songs = await spotifyApi.searchTracks(
-        `track: ${track} artist: ${artist}`
-      )
-      if (songs.body.tracks.items.length !== 0) {
-        const song = songs.body.tracks.items[0]
-        const newSong = await Song.create({
-          id: song.id,
-          name: song.name,
-        })
-        const group = await Group.findById({ _id: groupID })
-        let duplicate = false
-        group.recommendedSongs.forEach(curr => {
-          if (curr.id === song.id) duplicate = true
-        })
-        if (!duplicate) {
-          const recommendedSongs = [...group.recommendedSongs, newSong]
-          await Group.updateOne({ _id: groupID }, { recommendedSongs })
-          res.send('recommended to group')
-        } else {
-          res.send('song is already recommended')
-        }
+      const newSong = await Song.create({
+        id: songID,
+        name: songName,
+      })
+      const group = await Group.findById({ _id: groupID })
+      let duplicate = false
+      group.recommendedSongs.forEach(curr => {
+        if (curr.id === songID) duplicate = true
+      })
+      if (!duplicate) {
+        const recommendedSongs = [...group.recommendedSongs, newSong]
+        await Group.updateOne({ _id: groupID }, { recommendedSongs })
+        res.send('recommended to group')
       } else {
-        res.send('no such song')
+        console.log('already recommended')
+        res.send('song is already recommended')
       }
     } else {
+      console.log('not in group')
       res.send('not in group')
     }
   } catch (err) {

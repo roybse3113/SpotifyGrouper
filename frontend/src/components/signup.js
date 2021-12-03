@@ -14,9 +14,7 @@ const signup = () => {
       password,
     })
     if (data === 'user created') {
-      // if sign up, also log in simultaneously
-      await axios.post('/account/login', { username, password })
-      navigate('/')
+      navigate('/login')
     } else {
       alert('user was not created')
     }

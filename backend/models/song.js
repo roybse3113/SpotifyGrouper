@@ -5,6 +5,7 @@ const songSchema = new Schema({
   name: { type: String, required: true },
   numVotes: { type: Number, default: 0 },
   voters: [{ type: String }],
+  artists: [{ type: String }],
 })
 
 module.exports = model('Song', songSchema)

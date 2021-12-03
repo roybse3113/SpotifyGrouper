@@ -204,7 +204,9 @@ router.post('/leave', isAuthenticated, async (req, res, next) => {
 router.post('/upvoteSong', isAuthenticated, async (req, res, next) => {
   const userId = req.session.id
   const { groupId, songId } = req.body
-
+  console.log('entered upvote')
+  console.log('groupId', groupId)
+  console.log('songId', songId)
   try {
     // check that user is in the group
     const user = await User.findById({ _id: userId })
@@ -262,6 +264,9 @@ router.post('/upvoteSong', isAuthenticated, async (req, res, next) => {
 router.post('/downvoteSong', isAuthenticated, async (req, res, next) => {
   const userId = req.session.id
   const { groupId, songId } = req.body
+  console.log('entered downvote')
+  console.log('groupId', groupId)
+  console.log('songId', songId)
 
   try {
     // check that user is in the group
@@ -292,6 +297,7 @@ router.post('/downvoteSong', isAuthenticated, async (req, res, next) => {
         })
 
         const currSong = await Song.findOne({ _id: songId })
+        recommendedSongs.push(currSong)
 
         await Group.updateOne({ _id: groupId }, { recommendedSongs })
         // res.send(recommendedSongs)
