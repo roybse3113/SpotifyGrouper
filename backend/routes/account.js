@@ -34,11 +34,13 @@ router.post('/login', async (req, res, next) => {
 
   try {
     if (req.session.user) {
+      console.log('user already logged in')
       res.send('user already logged in')
     } else {
       const user = await User.findOne({ username })
 
       if (!user) {
+        console.log('user does not exist')
         res.send('user does not exist')
       } else {
         const { password: passDB } = user
@@ -52,9 +54,29 @@ router.post('/login', async (req, res, next) => {
           res.send('user logged in successfully')
         } else {
           res.send('user credentials are wrong')
+          res.send('user credentials are wrong')
         }
       }
     }
+  } catch (err) {
+    next(err)
+  }
+})
+
+router.get('/users', async (req, res, next) => {
+  try {
+    const users = await User.find()
+    res.json(users)
+  } catch (err) {
+    next(err)
+  }
+})
+
+router.get('/currentUser', async (req, res, next) => {
+  try {
+    const { id } = req.session
+    const user = await User.findOne({ _id: id })
+    res.send(user)
   } catch (err) {
     next(err)
   }

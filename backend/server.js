@@ -3,11 +3,13 @@ const SpotifyWebApi = require('spotify-web-api-node')
 const express = require('express')
 const mongoose = require('mongoose')
 const session = require('cookie-session')
+const path = require('path')
 const User = require('./models/user')
 
 const AccountRouter = require('./routes/account')
 const SpotifyRouter = require('./routes/spotify')
 const GroupRouter = require('./routes/group')
+const isAuthenticated = require('./middlewares/isAuthenticated')
 
 const app = express()
 
@@ -18,6 +20,8 @@ mongoose.connect(MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
+
+app.use(express.static('dist'))
 
 app.use(express.json())
 
@@ -43,8 +47,20 @@ app.use((err, req, res, next) => {
   })
 })
 
-app.get('/', (req, res) => {
-  return res.send('ellop world!')
+// set favicon
+app.get('/favicon.ico', (req, res) => {
+  res.status(404).send()
 })
 
-app.listen(3000, () => console.log('HTTP Server up'))
+// set the initial entry point
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../dist/index.html'))
+})
+
+// app.get('/', (req, res) => res.send('ellop world!'))
+
+// exception for console logging ports
+app.listen(3000, () => {
+  // eslint-disable-next-line no-console
+  console.log('listening on port 3000')
+})

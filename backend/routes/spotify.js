@@ -68,8 +68,6 @@ router.get('/callback', async (req, res) => {
         `Sucessfully retreived access token. Expires in ${expires_in} s.`
       )
 
-      res.send(`signed in`)
-
       setInterval(async () => {
         const refresh_data = await spotifyApi.refreshAccessToken()
         const { refresh_access_token } = refresh_data.body
@@ -79,6 +77,8 @@ router.get('/callback', async (req, res) => {
 
         spotifyApi.setAccessToken(refresh_access_token)
       }, (expires_in / 2) * 1000)
+
+      res.redirect('/')
     })
     .catch(err => {
       console.error('Error getting Tokens:', err)
