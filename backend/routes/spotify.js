@@ -87,7 +87,7 @@ router.get('/about', async (req, res, next) => {
     const userInfo = await spotifyApi.getMe()
     if (userInfo) {
       res.send(userInfo)
-      console.log(userInfo)
+      // console.log(userInfo)
     }
   } catch (err) {
     console.log(err)
@@ -100,7 +100,7 @@ router.get('/playlists', async (req, res, next) => {
     const playlists = await spotifyApi.getUserPlaylists()
     if (playlists) {
       res.send(playlists)
-      console.log(playlists)
+      // console.log(playlists)
     }
   } catch (err) {
     next(err)
@@ -110,7 +110,7 @@ router.get('/playlists', async (req, res, next) => {
 router.get('/topArtists', async (req, res, next) => {
   try {
     const artists = await spotifyApi.getMyTopArtists()
-    console.log('top artists', artists)
+    // console.log('top artists', artists)
     const list = []
     if (artists) {
       artists.body.items.forEach(ele => {
@@ -129,11 +129,11 @@ router.get('/topArtists', async (req, res, next) => {
 router.get('/topTracks', async (req, res, next) => {
   try {
     const tracks = await spotifyApi.getMyTopTracks()
-    console.log('top tracks', tracks)
+    // console.log('top tracks', tracks)
     const list = []
     if (tracks) {
       tracks.body.items.forEach(ele => {
-        list.push(ele.id)
+        list.push({ name: ele.name, id: ele.id })
       })
       req.session.topTracks = list
       res.send(list)
@@ -149,14 +149,17 @@ router.get('/followedArtists', async (req, res, next) => {
   try {
     const artists = await spotifyApi.getFollowedArtists()
     const list = []
+    const artistList = []
     if (artists) {
       artists.body.artists.items.forEach(ele => {
         list.push(ele.id)
+        artistList.push({ name: ele.name, id: ele.id })
       })
       req.session.followedArtists = list
       res.send(req.session.followedArtists)
       const { id, followedArtists } = req.session
       await User.updateOne({ _id: id }, { followedArtists })
+      await User.updateOne({ _id: id }, { artistList })
     }
   } catch (err) {
     next(err)
@@ -209,28 +212,58 @@ router.post('/makeMostPlayedPlaylist', async (req, res, next) => {
   // const groupID = '61a026d7ea91ed50bf706ad4'
   const list = []
   try {
-    const playlist = await spotifyApi.createPlaylist('Top Tracks Playlist')
+    const playlist = await spotifyApi.createPlaylist(
+      'Most Played Tracks Playlist'
+    )
     const { id } = playlist.body
 
     const userID = req.session.id
     const user = await User.findById({ _id: userID })
-    console.log('user', user)
+    // console.log('user', user)
     const userTopTracks = user.topTracks
-    console.log('user top tracks', userTopTracks)
+    // console.log('user top tracks', userTopTracks)
 
     const group = await Group.findById({ _id: groupID })
     group.members.forEach(member => {
       if (member !== user) {
         const { topTracks } = member
-        console.log('curr top tracks', topTracks)
+        // console.log('curr top tracks', topTracks)
         topTracks.forEach(track => {
           if (!userTopTracks.includes(track)) {
-            list.push(`spotify:track:${track}`)
+            list.push(`spotify:track:${track.id}`)
           }
         })
       }
     })
-    console.log('list', list)
+    // console.log('list', list)
+    await spotifyApi.addTracksToPlaylist(id, list)
+    res.send('created playlist')
+  } catch (err) {
+    next(err)
+  }
+})
+
+// given group ID, top recommended playlist
+router.post('/makeRecommendedPlaylist', async (req, res, next) => {
+  const { groupID } = req.body
+  const list = []
+  try {
+    const playlist = await spotifyApi.createPlaylist('Recommended Playlist')
+    const { id } = playlist.body
+
+    const group = await Group.findById({ _id: groupID })
+
+    const seed_artists = []
+    group.artists.forEach(artist => seed_artists.push(artist.id))
+    const recommendedList = await spotifyApi.getRecommendations({
+      min_energy: 0.4,
+      seed_artists,
+      min_popularity: 50,
+    })
+
+    recommendedList.body.tracks.forEach(track => {
+      list.push(`spotify:track:${track.id}`)
+    })
     await spotifyApi.addTracksToPlaylist(id, list)
     res.send('created playlist')
   } catch (err) {
@@ -247,19 +280,25 @@ router.post('/search', async (req, res, next) => {
     )
     const list = []
     if (songs.body.tracks.items.length !== 0) {
-      songs.body.tracks.items.forEach(async song => {
+      songs.body.tracks.items.forEach(song => {
         const songArtists = []
         song.artists.forEach(a => songArtists.push(a.name))
-        const curr = await Song.create({
+        // const curr = await Song.create({
+        //   id: song.id,
+        //   name: song.name,
+        //   artists: songArtists,
+        // })
+        const curr = {
           id: song.id,
           name: song.name,
+          numVotes: 0,
+          upvoters: [],
+          downvoters: [],
           artists: songArtists,
-        })
-        list.push(curr)
-        if (list.length === songs.body.tracks.items.length) {
-          res.send(list)
         }
+        list.push(curr)
       })
+      res.send(list)
     } else {
       res.send('no results found')
     }
@@ -276,19 +315,30 @@ router.post('/recommendSong', async (req, res, next) => {
   try {
     // check if user is in group
     const user = await User.findById({ _id: userId })
-    console.log(user)
+    // console.log(user)
     let inGroup = false
     user.groups.forEach(g => {
-      console.log(g, groupID)
+      // console.log(g, groupID)
       if (g === groupID) inGroup = true
     })
 
     if (inGroup) {
-      const newSong = await Song.create({
+      // const newSong = await Song.create({
+      //   id: songID,
+      //   name: songName,
+      // })
+      console.log('songId', songID)
+      const newSong = {
         id: songID,
         name: songName,
-      })
+        numVotes: 0,
+        upvoters: [],
+        downvoters: [],
+        artists: [],
+      }
+      console.log('new song', newSong)
       const group = await Group.findById({ _id: groupID })
+      console.log('group', group)
       let duplicate = false
       group.recommendedSongs.forEach(curr => {
         if (curr.id === songID) duplicate = true
@@ -312,8 +362,27 @@ router.post('/recommendSong', async (req, res, next) => {
 
 // add the community playlist as a playlist
 router.post('/useCommunityPlaylist', async (req, res, next) => {
-  const groupID = '61a026d7ea91ed50bf706ad4'
-  const list = []
+  const { groupID } = req.body
+  try {
+    const group = await Group.findById({ _id: groupID })
+
+    if (group.communityPlaylist.length > 0) {
+      const playlist = await spotifyApi.createPlaylist('Community Playlist')
+      const { id } = playlist.body
+
+      const list = []
+      group.communityPlaylist.forEach(song => {
+        list.push(`spotify:track:${song.id}`)
+      })
+
+      await spotifyApi.addTracksToPlaylist(id, list)
+      res.send('created playlist')
+    } else {
+      res.send('empty list')
+    }
+  } catch (err) {
+    next(err)
+  }
 })
 
 module.exports = router

@@ -3,13 +3,13 @@ const User = require('./user').schema
 const Song = require('./song').schema
 
 const groupSchema = new Schema({
-  name: { type: String },
+  groupname: { type: String },
   members: [{ type: User }],
-  artists: [{ type: String }],
-  mostPlayed: [{ type: String }],
+  artists: [{ type: Object }],
+  mostPlayed: [{ type: Object }],
   mapTracks: { type: Map },
-  communityPlaylist: [{ type: Song }],
-  recommendedSongs: [{ type: Song }],
+  communityPlaylist: [{ type: Object }],
+  recommendedSongs: [{ type: Object }],
 })
 
 module.exports = model('Group', groupSchema)

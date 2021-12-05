@@ -72,6 +72,44 @@ router.get('/users', async (req, res, next) => {
   }
 })
 
+// indicate user wants to match
+router.post('/available', async (req, res, next) => {
+  const userID = req.session.id
+  try {
+    const user = await User.findById({ _id: userID })
+    if (user.availability) {
+      await User.updateOne({ _id: userID }, { availability: false })
+      res.send('made unavailable')
+    } else {
+      await User.updateOne({ _id: userID }, { availability: true })
+      res.send('made available')
+    }
+  } catch (err) {
+    next(err)
+  }
+})
+
+// approve group matching if >= 3 people are available
+// once have a small group, other users can join
+// for each user, ideally would only show groups to join if they share
+// enough similarity or number of shared artists
+router.get('/getAvailableCount', async (req, res, next) => {
+  // console.log('enteredd')
+  try {
+    const users = await User.find()
+    // console.log('users', users)
+    let cnt = 0
+    users.forEach(user => {
+      if (user.availability) cnt++
+      // console.log('updated count: ', cnt)
+    })
+    if (cnt >= 3) res.send('enough users')
+    else res.send('not enough users')
+  } catch (err) {
+    next(err)
+  }
+})
+
 router.get('/currentUser', async (req, res, next) => {
   try {
     const { id } = req.session
