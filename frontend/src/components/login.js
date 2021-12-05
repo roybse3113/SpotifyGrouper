@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import { Link, useNavigate } from 'react-router-dom'
+import '../styles/form.css'
 
 const login = () => {
   const [username, setUsername] = useState('')
@@ -28,26 +29,36 @@ const login = () => {
   }
 
   return (
-    <div className='signup'>
+    <div className="login">
       <h1>Log In page</h1>
-      <div className='username'>
-        <p>username:</p>
-        <input onChange={e => setUsername(e.target.value)} />
+      <div className="username">
+        <i className="fas fa-address-card" />
+        <input
+          placeholder="Enter username"
+          onChange={e => setUsername(e.target.value)}
+        />
       </div>
-      <div className='password'>
-        <p>password:</p>
-        <input onChange={e => setPassword(e.target.value)} />
+      <div className="password">
+        <i className="fas fa-credit-card" />
+        <input
+          placeholder="Enter password"
+          onChange={e => setPassword(e.target.value)}
+        />
       </div>
       <br />
-      <button className='submit' type='button' onClick={logIn}>
+      <button className="login" type="button" onClick={logIn}>
         Log In
       </button>
-      <button className='submit' type='button' onClick={logOut}>
-        Log Out
+      <h5 className="horizontalP">
+        <span className="horizontalP">or</span>
+      </h5>
+      <button
+        className="signup"
+        type="button"
+        onClick={() => navigate('/signup')}
+      >
+        Sign up
       </button>
-      <p>
-        Do not already have an account? <Link to='/signup'>Sign up</Link>{' '}
-      </p>
     </div>
   )
 }

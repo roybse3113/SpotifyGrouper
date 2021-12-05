@@ -1,0 +1,78 @@
+* {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+button {
+  margin-top: 5px;
+  padding: 5px;
+  margin-top: 5px;
+  margin-left: 5px;
+  margin-right: 5px;
+  background-color: rgb(185, 178, 178);
+  border-radius: 5px;
+  box-shadow: 0px 0px 2px black;
+  margin-bottom: 10px;
+  margin-left: 5px;
+}
+
+button:hover {
+  transition-duration: 0.2s;
+  box-shadow: 0px 0px 6px black;
+}
+
+ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: aliceblue;
+}
+
+li {
+  float: left;
+}
+
+li.currGroup {
+  padding: 15px;
+  max-width: 100%;
+  word-wrap: break-word;
+}
+
+div.groupForm {
+  float: right;
+  width: 600px;
+  box-sizing: border-box;
+  margin: 30px auto;
+  overflow: auto;
+  box-shadow: 0px 0px 10px grey;
+  padding: 20px;
+  border-radius: 5px;
+  text-align: center;
+}
+
+button.first {
+  margin-top: 5px;
+  width: 200px;
+  word-wrap: break-word;
+  padding: 5px;
+  margin-bottom: 5px;
+  border: none;
+  margin-right: 30px;
+}
+
+button.sample {
+  margin-top: 5px;
+  width: 200px;
+  word-wrap: break-word;
+  padding: 5px;
+  margin-bottom: 5px;
+  border: none;
+  outline: 1px solid black;
+  margin-right: 30px;
+  background-color: rgb(142, 188, 228);
+  cursor: not-allowed;
+}
+
+button.join {
+  background-color: rgb(177, 204, 230);
+}

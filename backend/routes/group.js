@@ -11,6 +11,43 @@ const isAuthenticated = require('../middlewares/isAuthenticated')
 // give options for ways in which users could be grouped?
 // by shared followed artists, top artists, top tracks, etc
 // by top tracks/artists (probably the most realistic), not everyone follows their top artists
+
+// Algorithm for k-combinations
+/**
+ * Copyright 2012 Akseli Palén.
+ * Created 2012-07-15.
+ * Licensed under the MIT license.
+ */
+function k_combinations(set, k) {
+  let i
+  let j
+  let combs
+  let head
+  let tailcombs
+  if (k > set.length || k <= 0) {
+    return []
+  }
+  if (k === set.length) {
+    return [set]
+  }
+  if (k === 1) {
+    combs = []
+    for (i = 0; i < set.length; i++) {
+      combs.push([set[i]])
+    }
+    return combs
+  }
+  combs = []
+  for (i = 0; i < set.length - k + 1; i++) {
+    head = set.slice(i, i + 1)
+    tailcombs = k_combinations(set.slice(i + 1), k - 1)
+    for (j = 0; j < tailcombs.length; j++) {
+      combs.push(head.concat(tailcombs[j]))
+    }
+  }
+  return combs
+}
+
 router.post('/match', async (req, res, next) => {
   try {
     const usersToMatch = []
@@ -21,9 +58,7 @@ router.post('/match', async (req, res, next) => {
 
     // check that another group doesn't have the same exact people
     // >= 1 new person
-
     const allGroups = await Group.find()
-    console.log('all groups', allGroups)
     let unique = true
     allGroups.forEach(group => {
       let diff = false
@@ -31,85 +66,103 @@ router.post('/match', async (req, res, next) => {
         const freq = new Map()
         group.members.forEach(member => {
           const memID = member._id.toString()
-          console.log('id', memID)
           if (freq.has(memID)) {
             freq.set(memID, freq.get(memID) + 1)
           } else {
             freq.set(memID, 1)
           }
         })
-        console.log('gorup members', freq)
         usersToMatch.forEach(member => {
           const memID = member._id.toString()
           if (freq.has(memID)) {
             freq.set(memID, freq.get(memID) - 1)
           }
         })
-        console.log('userstoMtach', freq)
         freq.forEach((val, key) => {
           if (val !== 0) diff = true
         })
-        console.log('diff', diff)
-        console.log('freq', freq)
         if (!diff) unique = false
-        console.log('unique', unique)
       }
     })
 
     if (unique) {
-      usersToMatch.forEach(async user => {
-        await User.updateOne({ _id: user._id }, { availability: false })
-      })
-
-      const list = []
+      let list = []
 
       if (!users) {
         next(new Error('no users'))
       }
 
-      const artists = []
+      let artists = []
       const artistObjects = []
 
-      usersToMatch.forEach(user1 => {
-        usersToMatch.forEach(user2 => {
-          if (user2 !== user1) {
-            // compare current user with all other users
-            const map = new Map()
-            let cnt = 0
-            user1.followedArtists.forEach(artist => {
-              map.set(artist, 1)
-            })
-            user2.followedArtists.forEach(artist => {
-              if (map.has(artist)) {
-                map.set(artist, map.get(artist) - 1)
-              }
-            })
-            map.forEach((val, key) => {
-              if (val === 0) {
-                cnt++
-                if (!artists.includes(key)) {
-                  artists.push(key)
-                  user1.artistList.forEach(artist => {
-                    if (artist.id === key && !artistObjects.includes(artist)) {
-                      artistObjects.push(artist)
-                    }
-                  })
-                }
-              }
-            })
+      const combinations = k_combinations(usersToMatch, 3)
 
-            if (cnt >= 3) {
-              if (!list.includes(user1)) list.push(user1)
-              if (!list.includes(user2)) list.push(user2)
+      combinations.forEach(comb => {
+        const map = new Map()
+        const sharedArtists = []
+        const test = []
+        comb.forEach(user => test.push(user.username))
+        comb.forEach(user => {
+          user.followedArtists.forEach(artist => {
+            if (!map.has(artist)) {
+              map.set(artist, 1)
+            } else {
+              map.set(artist, map.get(artist) + 1)
+              if (map.get(artist) === 3) sharedArtists.push(artist)
             }
-          }
+          })
         })
+        if (sharedArtists.length >= 3) {
+          artists = [...sharedArtists]
+          list = [...comb]
+          if (artistObjects.length < 3) {
+            list[0].artistList.forEach(artist => {
+              if (artists.includes(artist.id)) artistObjects.push(artist)
+            })
+          }
+        }
       })
+
+      // usersToMatch.forEach(user1 => {
+      //   usersToMatch.forEach(user2 => {
+      //     if (user2 !== user1) {
+      //       // compare current user with all other users
+      //       const map = new Map()
+      //       let cnt = 0
+      //       user1.followedArtists.forEach(artist => {
+      //         map.set(artist, 1)
+      //       })
+      //       user2.followedArtists.forEach(artist => {
+      //         if (map.has(artist)) {
+      //           map.set(artist, map.get(artist) - 1)
+      //         }
+      //       })
+      //       map.forEach((val, key) => {
+      //         if (val === 0) {
+      //           cnt++
+      //           if (!artists.includes(key)) {
+      //             artists.push(key)
+      //             user1.artistList.forEach(artist => {
+      //               if (artist.id === key && !artistObjects.includes(artist)) {
+      //                 artistObjects.push(artist)
+      //               }
+      //             })
+      //           }
+      //         }
+      //       })
+
+      //       if (cnt >= 3) {
+      //         if (!list.includes(user1)) list.push(user1)
+      //         if (!list.includes(user2)) list.push(user2)
+      //       }
+      //     }
+      //   })
+      // })
+      // console.log('list of users', list)
 
       if (list.length > 0) {
         const group = await Group.create({ members: list })
         const id = group._id.toString()
-        console.log('objects', artistObjects)
         await Group.updateOne({ _id: id }, { artists: artistObjects })
         const updatedUsers = []
 
@@ -123,6 +176,10 @@ router.post('/match', async (req, res, next) => {
           // update the group containing the users
           if (updatedUsers.length === list.length) {
             await Group.updateOne({ _id: id }, { members: updatedUsers })
+            // only reset availability for each user if made group
+            usersToMatch.forEach(async user => {
+              await User.updateOne({ _id: user._id }, { availability: false })
+            })
           }
         })
 
@@ -173,14 +230,11 @@ router.post('/match', async (req, res, next) => {
 
 router.post('/member', async (req, res, next) => {
   const userID = req.session.id
-  console.log('ididid', userID)
   const { id } = req.body
-  console.log('id', id)
   try {
     const group = await Group.findById({ _id: id })
     let membership = false
     group.members.forEach(member => {
-      console.log(member._id.toString(), userID)
       if (member._id.toString() === userID) membership = true
     })
     if (membership) res.send('yes')
@@ -195,7 +249,6 @@ router.post('/join', isAuthenticated, async (req, res, next) => {
   const { id } = req.body
   // const id = '61a033dd77d30f274c9ebaa9'
   const userID = req.session.id
-  console.log('userid', userID)
   try {
     const group = await Group.findById({ _id: id })
     const { mapTracks } = group
@@ -209,7 +262,6 @@ router.post('/join', isAuthenticated, async (req, res, next) => {
         cnt++
       }
     })
-    console.log('cnt', cnt)
     if (cnt >= 3) compatible = true
 
     if (compatible) {
@@ -279,9 +331,7 @@ router.post('/leave', isAuthenticated, async (req, res, next) => {
       // update the most played tracks including new user
       user.topTracks.forEach(track => {
         if (mapTracks.has(track.id)) {
-          console.log(track.name, 'After: ', mapTracks.get(track.id))
           mapTracks.set(track.id, mapTracks.get(track.id) - 1)
-          console.log(track.name, 'Before: ', mapTracks.get(track.id))
           if (mapTracks.get(track.id) === 0) {
             mapTracks.delete(track.id)
             toRemove.push(track.id)
@@ -289,12 +339,9 @@ router.post('/leave', isAuthenticated, async (req, res, next) => {
         }
       })
 
-      console.log('to remove', toRemove)
       group.mostPlayed.forEach(song => {
-        console.log('songid', song.id)
         if (!toRemove.includes(song.id)) allTracks.push(song)
       })
-      console.log('all remaining tracks', allTracks)
 
       const sol = []
       const mostPlayed = []
@@ -317,7 +364,6 @@ router.post('/leave', isAuthenticated, async (req, res, next) => {
 
       const groups = []
       user.groups.forEach(g => {
-        console.log(g._id)
         if (g._id !== id) groups.push(g)
       })
 
@@ -336,8 +382,6 @@ router.post('/leave', isAuthenticated, async (req, res, next) => {
 router.post('/upvoteSong', isAuthenticated, async (req, res, next) => {
   const userId = req.session.id
   const { groupId, songId } = req.body
-  console.log('groupId', groupId)
-  console.log('songId', songId)
   try {
     // check that user is in the group
     const user = await User.findById({ _id: userId })
@@ -354,7 +398,6 @@ router.post('/upvoteSong', isAuthenticated, async (req, res, next) => {
       songs.forEach(song => {
         if (song.id === songId) pre = song
       })
-      console.log('pre', pre)
       if (!pre.upvoters.includes(userId)) {
         // add user to voter list to keep track
         const upvoters = [...pre.upvoters, userId]
@@ -395,15 +438,12 @@ router.post('/upvoteSong', isAuthenticated, async (req, res, next) => {
 
         res.send('upvoted song')
       } else {
-        console.log('already voted')
         res.send('already voted on this song')
       }
     } else {
-      console.log('not in group')
       res.send('not in group')
     }
   } catch (err) {
-    console.log('error')
     next(err)
   }
 })

@@ -36,7 +36,8 @@
     "react-router-dom": "^6.0.2",
     "spotify-web-api-js": "^1.5.2",
     "spotify-web-api-node": "^5.0.2",
-    "superagent": "^6.1.0"
+    "superagent": "^6.1.0",
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
     "eslint-plugin-import": "^2.21.2",

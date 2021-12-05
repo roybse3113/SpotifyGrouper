@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import { Link, useNavigate } from 'react-router-dom'
+import '../styles/form.css'
 
 const signup = () => {
   const [username, setUsername] = useState('')
@@ -20,23 +21,36 @@ const signup = () => {
     }
   }
   return (
-    <div className='signup'>
+    <div className="login">
       <h1>Sign up page</h1>
-      <div className='username'>
-        <p>username:</p>
-        <input onChange={e => setUsername(e.target.value)} />
+      <div className="username">
+        <i className="fas fa-address-card" />
+        <input
+          placeholder="username"
+          onChange={e => setUsername(e.target.value)}
+        />
       </div>
-      <div className='password'>
-        <p>password:</p>
-        <input onChange={e => setPassword(e.target.value)} />
+      <div className="password">
+        <i className="fas fa-credit-card" />
+        <input
+          placeholder="password"
+          onChange={e => setPassword(e.target.value)}
+        />
       </div>
       <br />
-      <button className='submit' type='button' onClick={createUser}>
+      <button className="login" type="button" onClick={createUser}>
         Sign Up
       </button>
-      <p>
-        Already have an account? <Link to='/login'>login</Link>{' '}
-      </p>
+      <h5 className="horizontalP">
+        <span className="horizontalP">or</span>
+      </h5>
+      <button
+        className="signup"
+        type="button"
+        onClick={() => navigate('/login')}
+      >
+        Login
+      </button>
     </div>
   )
 }

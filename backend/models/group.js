@@ -1,6 +1,5 @@
 const { Schema, model } = require('mongoose')
 const User = require('./user').schema
-const Song = require('./song').schema
 
 const groupSchema = new Schema({
   groupname: { type: String },
@@ -11,5 +10,4 @@ const groupSchema = new Schema({
   communityPlaylist: [{ type: Object }],
   recommendedSongs: [{ type: Object }],
 })
-
 module.exports = model('Group', groupSchema)

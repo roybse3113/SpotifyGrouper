@@ -1,7 +1,5 @@
 import React from 'react'
 
-const song = () => {
-  return <div></div>
-}
+const song = () => <div />
 
 export default song

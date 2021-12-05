@@ -13,8 +13,7 @@ const isAuthenticated = require('./middlewares/isAuthenticated')
 
 const app = express()
 
-const MONGO_URI =
-  process.env.MONGODB_URI || 'mongodb://localhost:27017/Spotify-Grouper'
+const MONGO_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/Spotify-Grouper'
 
 mongoose.connect(MONGO_URI, {
   useNewUrlParser: true,
@@ -30,7 +29,7 @@ app.use(
     name: 'session',
     keys: ['key1', 'key2'],
     maxAge: 1000 * 24 * 60 * 60,
-  })
+  }),
 )
 
 app.use('/spotify', SpotifyRouter)

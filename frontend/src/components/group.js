@@ -1,15 +1,25 @@
 /* eslint-disable no-alert */
 import React, { useState } from 'react'
 import axios from 'axios'
+import { v4 as uuidv4 } from 'uuid'
+import '../styles/home.css'
+import '../styles/group.css'
 
-const group = ({ currGroup, user, setShowGroup, setInGroup }) => {
+const group = ({
+  currGroup, user, setShowGroup, setInGroup,
+}) => {
   const [artist, setArtist] = useState('')
   const [track, setTrack] = useState('')
   const [songs, setSongs] = useState([])
+  const [showMembers, setShowMembers] = useState(false)
+  const [showArtists, setShowArtists] = useState(false)
+  const [showMostPlayedSongs, setShowMostPlayedSongs] = useState(false)
+  const [showRecommendedSongs, setShowRecommendedSongs] = useState(false)
+  const [showCommunityPlaylist, setShowCommunityPlaylist] = useState(false)
+  const [showSearch, setShowSearch] = useState(false)
+  let i = 0
 
   const upVote = async song => {
-    console.log('currGroup', currGroup._id)
-    console.log(song.id)
     const { data: response } = await axios.post('/group/upvoteSong', {
       groupId: currGroup._id,
       songId: song.id,
@@ -18,7 +28,6 @@ const group = ({ currGroup, user, setShowGroup, setInGroup }) => {
   }
 
   const downVote = async song => {
-    console.log('currGroup', currGroup._id)
     const { data: response } = await axios.post('/group/downvoteSong', {
       groupId: currGroup._id,
       songId: song.id,
@@ -27,7 +36,6 @@ const group = ({ currGroup, user, setShowGroup, setInGroup }) => {
   }
 
   const leave = async () => {
-    console.log(currGroup._id)
     const { data: response } = await axios.post('/group/leave', {
       id: currGroup._id,
     })
@@ -35,55 +43,12 @@ const group = ({ currGroup, user, setShowGroup, setInGroup }) => {
     alert(response)
   }
 
-  const displayGroup = () => {
-    let contains = false
-    currGroup.members.forEach(member => {
-      if (member._id === user._id) contains = true
-    })
-    if (contains) {
-      return (
-        <div>
-          <h4>Members</h4>
-          {currGroup.members.map(member => (
-            <p>{member.username}</p>
-          ))}
-          <h4>Artists</h4>
-          {currGroup.artists.map(currArtist => (
-            <p>{currArtist.name}</p>
-          ))}
-          <h4>Most Played Songs</h4>
-          {currGroup.mostPlayed.map(song => (
-            <p>{song.name}</p>
-          ))}
-          <h4>Recommended Songs</h4>
-          {currGroup.recommendedSongs.map(song => (
-            <div>
-              <p>{song.name}</p>
-              <p>{song.numVotes}</p>
-              <button type='button' onClick={() => upVote(song)}>
-                Up Vote
-              </button>
-              <button type='button' onClick={() => downVote(song)}>
-                Down Vote
-              </button>
-            </div>
-          ))}
-          <h4>Community Playlist</h4>
-          {currGroup.communityPlaylist.map(song => (
-            <p>{song.name}</p>
-          ))}
-        </div>
-      )
-    }
-    return ''
-  }
-
   const popularPlaylist = async () => {
     const { data: response } = await axios.post(
       '/spotify/makePopularPlaylist',
       {
         groupID: currGroup._id,
-      }
+      },
     )
     if (response !== 'created playlist') alert('error making playlist')
     else alert('made playlist')
@@ -94,7 +59,7 @@ const group = ({ currGroup, user, setShowGroup, setInGroup }) => {
       '/spotify/makeRecommendedPlaylist',
       {
         groupID: currGroup._id,
-      }
+      },
     )
     if (response !== 'created playlist') alert('error making playlist')
     else alert('made playlist')
@@ -105,7 +70,7 @@ const group = ({ currGroup, user, setShowGroup, setInGroup }) => {
       '/spotify/useCommunityPlaylist',
       {
         groupID: currGroup._id,
-      }
+      },
     )
     alert(response)
   }
@@ -115,10 +80,168 @@ const group = ({ currGroup, user, setShowGroup, setInGroup }) => {
       '/spotify/makeMostPlayedPlaylist',
       {
         groupID: currGroup._id,
-      }
+      },
     )
     if (response !== 'created playlist') alert('error making playlist')
     else alert('made playlist')
+  }
+
+  const displayGroup = () => {
+    let contains = false
+    currGroup.members.forEach(member => {
+      if (member._id === user._id) contains = true
+    })
+    if (contains) {
+      return (
+        <div className="mainForm">
+          <h5>
+            Group:
+            {' '}
+            {currGroup._id}
+          </h5>
+          <div className="members">
+            <button
+              className="formButton"
+              type="button"
+              onClick={() => setShowMembers(!showMembers)}
+            >
+              Members
+            </button>
+            {showMembers
+              ? currGroup.members.map(member => (
+                <p key={uuidv4()} className="content">
+                  {member.username}
+                </p>
+              ))
+              : ''}
+          </div>
+          <div className="artists">
+            <button
+              className="formButton"
+              type="button"
+              onClick={() => setShowArtists(!showArtists)}
+            >
+              Artists
+            </button>
+            {showArtists ? (
+              <div>
+                {currGroup.artists.map(currArtist => (
+                  <p key={uuidv4()} className="content">
+                    <i className="fas fa-microphone" />
+                    {' '}
+                    {currArtist.name}
+                  </p>
+                ))}
+                <button type="button" onClick={() => recommendedPlaylist()}>
+                  Make Recommended Playlist
+                </button>
+                <button type="button" onClick={() => popularPlaylist()}>
+                  Make Popular Playlist
+                </button>
+              </div>
+            ) : (
+              ''
+            )}
+          </div>
+          <div className="mostPlayedSongs">
+            <button
+              className="formButton"
+              type="button"
+              onClick={() => setShowMostPlayedSongs(!showMostPlayedSongs)}
+            >
+              Most Played Songs
+            </button>
+            <div className="scrollable">
+              {showMostPlayedSongs ? (
+                <div>
+                  {currGroup.mostPlayed.map(song => (
+                    <p key={uuidv4()} className="content">
+                      {++i}
+                      {' '}
+                      -
+                      {' '}
+                      <i className="fas fa-music" />
+                      {' '}
+                      {song.name}
+                    </p>
+                  ))}
+                  <button type="button" onClick={() => mostPlayedPlaylist()}>
+                    Make Most Played Playlist
+                  </button>
+                </div>
+              ) : (
+                ''
+              )}
+            </div>
+          </div>
+          <div className="recommendedSongs">
+            <button
+              className="formButton"
+              type="button"
+              onClick={() => setShowRecommendedSongs(!showRecommendedSongs)}
+            >
+              Recommended Songs
+            </button>
+            <div className="scrollable">
+              {showRecommendedSongs
+                ? currGroup.recommendedSongs.map(song => (
+                  <div key={uuidv4()} className="recommendedSong">
+                    <p className="content">
+                      <i className="fas fa-music" />
+                      {' '}
+                      {song.name}
+                    </p>
+                    <p className="content">
+                      <i className="fab fa-gratipay" />
+                      {song.numVotes}
+                    </p>
+                    <button
+                      className="vote"
+                      type="button"
+                      onClick={() => upVote(song)}
+                    >
+                      <i className="fas fa-thumbs-up" />
+                    </button>
+                    <button
+                      className="vote"
+                      type="button"
+                      onClick={() => downVote(song)}
+                    >
+                      <i className="fas fa-thumbs-down" />
+                    </button>
+                  </div>
+                ))
+                : ''}
+            </div>
+          </div>
+          <div className="communityPlaylist">
+            <button
+              className="formButton"
+              type="button"
+              onClick={() => setShowCommunityPlaylist(!showCommunityPlaylist)}
+            >
+              Community Playlist
+            </button>
+            {showCommunityPlaylist ? (
+              <div>
+                {currGroup.communityPlaylist.map(song => (
+                  <p key={uuidv4()} className="content">
+                    <i className="fas fa-music" />
+                    {song.name}
+                  </p>
+                ))}
+                <button type="button" onClick={() => communityPlaylist()}>
+                  Make Community Playlist
+                </button>
+              </div>
+            ) : (
+              ''
+            )}
+          </div>
+        </div>
+      )
+    }
+    return ''
   }
 
   const search = async () => {
@@ -155,11 +278,8 @@ const group = ({ currGroup, user, setShowGroup, setInGroup }) => {
 
   const recommend = async song => {
     const groupID = currGroup._id
-    console.log('group', groupID)
     const songName = song.name
-    console.log('name', song.name)
     const songID = song.id
-    console.log(song.id)
     const { data: response } = await axios.post('/spotify/recommendSong', {
       songName,
       songID,
@@ -171,51 +291,76 @@ const group = ({ currGroup, user, setShowGroup, setInGroup }) => {
   }
 
   return (
-    <div>
+    <div className="groupForm">
       {displayGroup()}
-      <div className='search'>
-        <div className='track'>
-          <p>Track:</p>
-          <input onChange={e => setTrack(e.target.value)} />
-        </div>
-        <br />
-        <div className='artist'>
-          <p>Artist:</p>
-          <input onChange={e => setArtist(e.target.value)} />
-        </div>
-      </div>
-      {songs.length > 0
-        ? songs.map(song => (
-            <button type='button' onClick={() => recommend(song)}>
-              <div>
-                <p>{song.name}</p>
-                {song.artists.map(a => (
-                  <p>{a}</p>
-                ))}
-              </div>
-            </button>
-          ))
-        : ''}
-      <br />
-      <button type='button' onClick={() => mostPlayedPlaylist()}>
-        Make Most Played Playlist
-      </button>
-      <button type='button' onClick={() => popularPlaylist()}>
-        Make Popular Playlist
-      </button>
-      <button type='button' onClick={() => communityPlaylist()}>
-        Make Community Playlist
-      </button>
-      <button type='button' onClick={() => recommendedPlaylist()}>
-        Make Recommended Playlist
-      </button>
-      <button type='button' onClick={() => search()}>
+      <button className="searchButton" type="button" onClick={() => setShowSearch(!showSearch)}>
+        <i className="fas fa-search" />
+        {' '}
         Search
       </button>
-      <button type='button' onClick={() => leave()}>
-        Leave
+      {showSearch ? (
+        <div className="searchForm">
+          <div className="searchInput">
+            <h5>
+              Spotify Search
+              {' '}
+              <i className="fas fa-eye" />
+            </h5>
+            <div className="search">
+              <div className="track">
+                <input
+                  className="track"
+                  placeholder="Track"
+                  onChange={e => setTrack(e.target.value)}
+                />
+              </div>
+              <div className="artist">
+                <input
+                  placeholder="Artist"
+                  onChange={e => setArtist(e.target.value)}
+                />
+              </div>
+            </div>
+            <br />
+            <button className="look" type="button" onClick={() => search()}>
+              Search
+            </button>
+          </div>
+          <div className="results">
+            {songs.length > 0
+              ? songs.map(song => (
+                <button
+                  key={uuidv4()}
+                  className="songOption"
+                  type="button"
+                  onClick={() => recommend(song)}
+                >
+                  <div>
+                    <p>
+                      {' '}
+                      <i className="fas fa-music" />
+                      {' '}
+                      {song.name}
+                    </p>
+                    <hr />
+                    {song.artists.map(a => (
+                      <p key={uuidv4()}>
+                        <i className="fas fa-microphone" />
+                        {a}
+                      </p>
+                    ))}
+                  </div>
+                </button>
+              ))
+              : ''}
+          </div>
+        </div>
+      ) : ''}
+      <br />
+      <button className="leave" type="button" onClick={() => leave()}>
+        Leave Group
       </button>
-      <button type='button' onClick={() => setShowGroup(false)}>
+      <button className="closer" type="button" onClick={() => setShowGroup(false)}>
         Close
       </button>
     </div>

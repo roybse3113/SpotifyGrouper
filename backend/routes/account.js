@@ -4,6 +4,22 @@ const router = express.Router()
 const User = require('../models/user')
 const isAuthenticated = require('../middlewares/isAuthenticated')
 
+// check to see if logged in or not
+
+router.get('/status', async (req, res, next) => {
+  const { username } = req.session
+  if (req.session.user) {
+    try {
+      const user = await User.findOne({ username })
+      res.json(user)
+    } catch (err) {
+      next(err)
+    }
+  } else {
+    res.send('not logged in')
+  }
+})
+
 // signup
 router.post('/signup', async (req, res, next) => {
   const { username, password } = req.body
@@ -34,13 +50,11 @@ router.post('/login', async (req, res, next) => {
 
   try {
     if (req.session.user) {
-      console.log('user already logged in')
       res.send('user already logged in')
     } else {
       const user = await User.findOne({ username })
 
       if (!user) {
-        console.log('user does not exist')
         res.send('user does not exist')
       } else {
         const { password: passDB } = user
@@ -50,7 +64,6 @@ router.post('/login', async (req, res, next) => {
           req.session.password = password
           req.session.user = user
           req.session.id = user._id.toString()
-          console.log('id: ', req.session.id)
           res.send('user logged in successfully')
         } else {
           res.send('user credentials are wrong')
