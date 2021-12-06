@@ -38,4 +38,11 @@ With access to such spotify information, users can be added as schema to the mon
 
 ![image](https://user-images.githubusercontent.com/79131282/144790994-16a98ce7-2825-48dc-b5c5-1d3e372e7bb8.png)
 
+![image](https://user-images.githubusercontent.com/79131282/144791257-b35a04d7-da87-43ae-8ab8-89e39a74c9d6.png)
+
+The main way for users to indicate that they want to join or are ready to matchmake with other users is the match availability state.
+![image](https://user-images.githubusercontent.com/79131282/144791338-391975f8-8f42-4a03-9a6a-de4abc84a18b.png)
+![image](https://user-images.githubusercontent.com/79131282/144791350-7625702e-31a9-40ff-9524-d058724cd562.png)
+
+
 
