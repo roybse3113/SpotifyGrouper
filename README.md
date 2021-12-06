@@ -29,3 +29,13 @@ For this final iteration, I worked on mainly connecting the front-end to the bac
 * Revised Group artist list to hold artist JS objects (id, name) instead of just string id in most of backend
 * Developed front-end with react to implement the back-end features/requests with user input on the browser website application
 * Styled with HTML, CSS, bootstrap, and font awesome icons
+
+Logging in requires authentication/connection with Spotify in order to keep track of data (top tracks, top artists, followed artists, making playlists, playing songs, etc)
+
+![image](https://user-images.githubusercontent.com/79131282/144791133-eafad156-e152-471d-bcb6-493a51e88cfb.png)
+
+With access to such spotify information, users can be added as schema to the mongoose DB.
+
+![image](https://user-images.githubusercontent.com/79131282/144790994-16a98ce7-2825-48dc-b5c5-1d3e372e7bb8.png)
+
+
