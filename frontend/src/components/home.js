@@ -22,6 +22,11 @@ const home = () => {
   const [inGroup, setInGroup] = useState(false)
   const [available, setAvailable] = useState(false)
   const navigate = useNavigate()
+  let initialized = false
+  const initUser = async () => {
+    const { data: curr } = await axios.get('/account/currentUser')
+    setUser(curr)
+  }
 
   const checkStatus = async () => {
     const { data: currUser } = await axios.get('/account/status')
@@ -177,18 +182,21 @@ const home = () => {
     const intervalID = setInterval(async () => {
       // update user information as necessary
       // await axios.get('/spotify/refresh')
-      await axios.get('/spotify/playlists')
-      await axios.get('/spotify/topArtists')
-      await axios.get('/spotify/topTracks')
-      await axios.get('/spotify/followedArtists')
+
+      if (!initialized) {
+        initialized = true
+        await axios.get('/spotify/playlists')
+        await axios.get('/spotify/topArtists')
+        await axios.get('/spotify/topTracks')
+        await axios.get('/spotify/followedArtists')
+        const { data: curr } = await axios.get('/account/currentUser')
+        setUser(curr)
+      }
 
       const { data: response } = await axios.get('/account/getAvailableCount')
       if (response === 'enough users') {
         await axios.post('/group/match')
       }
-
-      const { data: curr } = await axios.get('/account/currentUser')
-      setUser(curr)
       const { data: groups } = await axios.get('/group/groups')
       // displayGroups(groups)
       // console.log(members)
@@ -200,6 +208,13 @@ const home = () => {
     }, 2000)
     return () => clearInterval(intervalID)
   }, [members])
+
+  const logOut = async () => {
+    const { data: response } = await axios.post('/account/logout')
+    if (response === 'user has logged out') {
+      setLoginStatus(false)
+    }
+  }
 
   return (
     <div>

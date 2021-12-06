@@ -67,7 +67,6 @@ router.post('/login', async (req, res, next) => {
           res.send('user logged in successfully')
         } else {
           res.send('user credentials are wrong')
-          res.send('user credentials are wrong')
         }
       }
     }

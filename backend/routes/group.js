@@ -368,8 +368,12 @@ router.post('/leave', isAuthenticated, async (req, res, next) => {
       })
 
       await User.updateOne({ _id: userID }, { groups })
+      if (members.length === 0) {
+        await Group.findOneAndDelete({ _id: id })
+      } else {
+        await Group.updateOne({ _id: id }, { members })
+      }
 
-      await Group.updateOne({ _id: id }, { members })
       res.send('left group')
     } else {
       res.send('not in group')
