@@ -276,6 +276,11 @@ const group = ({
     }
   }
 
+  const displaySearch = () => {
+    setShowSearch(!showSearch)
+    setSongs('')
+  }
+
   const recommend = async song => {
     const groupID = currGroup._id
     const songName = song.name
@@ -293,7 +298,7 @@ const group = ({
   return (
     <div className="groupForm">
       {displayGroup()}
-      <button className="searchButton" type="button" onClick={() => setShowSearch(!showSearch)}>
+      <button className="searchButton" type="button" onClick={() => displaySearch()}>
         <i className="fas fa-search" />
         {' '}
         Search

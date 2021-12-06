@@ -29,6 +29,7 @@ div.searchInput {
 div.searchForm {
   max-width: 500px;
   height: 400px;
+  overflow: auto;
   margin: 30px auto;
   box-shadow: 0px 0px 10px grey;
   padding: 20px;
