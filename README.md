@@ -44,5 +44,71 @@ The main way for users to indicate that they want to join or are ready to matchm
 ![image](https://user-images.githubusercontent.com/79131282/144791338-391975f8-8f42-4a03-9a6a-de4abc84a18b.png)
 ![image](https://user-images.githubusercontent.com/79131282/144791350-7625702e-31a9-40ff-9524-d058724cd562.png)
 
+Utilizing the specified group matchmaking algorithm, if there are at least 3 users who ready to match, then the algorithm checks to see if there are at least some threshold number of users who share at least 3 followed artists on Spotify. If so, the group can be made.
+
+![image](https://user-images.githubusercontent.com/79131282/144791638-91bcaa95-2824-479f-ad45-cf63776ab84c.png)
+![image](https://user-images.githubusercontent.com/79131282/144791670-efbfe291-7416-48be-9dce-843181013df9.png)
+
+In terms of the shared artists within the group, there are two main functions. First to make a recommended playlist means to utilize the Spotify API request to take some array of artists and some minimum level of popularity and create a playlist of recommended songs based off of these specifications. The other is to make a popular playlist which takes the most popular songs from these shared artists and creates a playlist in your account. Both of these functions are ways for the user to add playlists based off of artists they share with other users.
+
+![image](https://user-images.githubusercontent.com/79131282/144791831-ad9e9eca-cd2d-491e-8ecc-5fde5b8dea7d.png)
+
+For the group's most played songs, this is kept track of my using a map to store the occurrences of the songs from the top tracks from each user in the group. This way, there is a functionality for each user to make a playlist based off of the most played songs in the group.
+
+![image](https://user-images.githubusercontent.com/79131282/144791924-579fd5b8-3578-4c5c-893e-72a7b2e3b88c.png)
+
+This map is part of the group schema in the database
+
+![image](https://user-images.githubusercontent.com/79131282/144792001-74849bfe-2b83-4ffb-9045-2641f80cdc78.png)
+
+When users join or leave a group, the members and the top tracks map in the group schema reflects these changes and updates the occurences of the songs also accounting for the added or dropped user's top tracks.
+
+![image](https://user-images.githubusercontent.com/79131282/144792185-e4668809-d35e-472a-9bf7-1d5a8afd31a1.png)
+![image](https://user-images.githubusercontent.com/79131282/144792276-55e4cecc-cce8-47c3-a582-32fe66447bae.png)
+
+Once a user leaves the group, they can join, if compatible. That is, if they share at least the shared followed artists as stored in the group schema among the users that are already in that group.
+
+![image](https://user-images.githubusercontent.com/79131282/144792202-9fb754f3-bbb2-4815-b27b-bba9a13bf3ec.png)
+
+Alas, the recommendation feature!
+
+![image](https://user-images.githubusercontent.com/79131282/144792421-0bd7299a-4e47-46b8-9ea1-5d7724bd5103.png)
+
+1. Search for songs
+
+![image](https://user-images.githubusercontent.com/79131282/144792472-e82bfebf-1c2d-4d86-90c0-d72a43b02cf3.png)
+
+2. Recommend it to the group!
+
+![image](https://user-images.githubusercontent.com/79131282/144792521-91be181e-037e-43a0-98a7-0b200cc534e8.png)
+
+3. If the other members of the group like it, it'll be added to the community playlist!
+
+![image](https://user-images.githubusercontent.com/79131282/144792565-6e0eac51-5ead-473e-8483-625728386225.png)
+
+4. Otherwise, the song will be removed from the recommended playlist if enough users downvote it.
+
+Finally, what if there are multiple groups? Can they have the same exact users? No. The backend was designed to prevent from groups being made if the same exact users in a group are already part of another group. Hence, so long as there is at least one unique/different user who share the threshold number of followed artists with the others, another group can be made!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
