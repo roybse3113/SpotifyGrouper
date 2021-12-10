@@ -13,7 +13,7 @@ const isAuthenticated = require('./middlewares/isAuthenticated')
 
 const app = express()
 
-const MONGO_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/Spotify-Grouper'
+// const MONGO_URI = mongoDB (local)
 
 mongoose.connect(MONGO_URI, {
   useNewUrlParser: true,
