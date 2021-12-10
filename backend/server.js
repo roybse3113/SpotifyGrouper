@@ -13,7 +13,7 @@ const isAuthenticated = require('./middlewares/isAuthenticated')
 
 const app = express()
 
-// const MONGO_URI = mongoDB (local)
+// const MONGO_URI = insert mongoDB server (local)
 
 mongoose.connect(MONGO_URI, {
   useNewUrlParser: true,
